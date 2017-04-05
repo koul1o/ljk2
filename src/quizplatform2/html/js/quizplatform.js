@@ -8,9 +8,7 @@ var qUrl;
  * Update the time passed since the intit of the platform
  * Function called from Class Bridge everytime we access a new page 
  */
-function updatePageTime(timeJ){
-    time=timeJ;
-}
+
 
 /** 
   * Upcall to Java to update the time passed since the intit of the platform
@@ -31,6 +29,17 @@ function sendTrace(){
     updateJavaTime();
 
  }
+ 
+ function sendTraceQuestion(){
+
+    var pageName=document.title;
+    var s = (timer()+time).toString()+"_"+pageName.toString();
+    java.getTrace(s);
+    updateJavaTime();
+
+ }
+ 
+ 
 
 /** 
   * Upcall to Java sending the time and the name of the accesed page for the final page 
@@ -75,7 +84,8 @@ function sendElementTrace(){
 }
 
 function checkAnswer() {
-  var message= 'Try again',
+   
+    var message= 'Try again',
       selected= document.querySelector('input[value="correct"]:checked'),
       messageDiv= document.querySelector('#message');
       messageDiv.style.color="red";
@@ -90,14 +100,13 @@ function checkAnswer() {
    
   
   if(selected) {
-  	
-   
     message='Correct';
     messageDiv.style.color="green";
-    sendUrl();
+    java.URLToNextQuestion(qUrl);
+    setNextUrl();
   }
   var pageName=document.title;
-  var s = time.toString()+"_"+pageName.toString()+"_Answer: "+ans;
+  var s = (timer()+time).toString()+"_"+pageName.toString()+"_Answer: "+ans;
   java.getTrace(s);
   updateJavaTime();
  
@@ -110,27 +119,19 @@ java.getUrl(url);
 }
 
 
-function setQuizUrl(){
+function setNextUrl(){
     
-    var a = document.getElementById('quiz_start'); //or grab it by tagname etc
-    a.href = qUrl;
+    var a = document.getElementById('quiz_next'); //or grab it by tagname etc
+    a.href = nextUrl;
     
-  if(qUrl==='#'){
-    messageDivCompl=document.getElementById('message_completed') ;
-    messageDivCompl.style.color="green";
-    messageDivCompl.innerHTML= 'You have completed the quiz';
-    return;
-    
-  }
-    sendElementTrace();
-    
+      
 }
 
 
-function backToDoc(){
+function backToQuiz(){
     
-    var b = document.getElementById('back'); //or grab it by tagname etc
-    b.href = bUrl;
+    var q = document.getElementById('back'); //or grab it by tagname etc
+    q.href = qUrl;
     sendTrace();
     
 }

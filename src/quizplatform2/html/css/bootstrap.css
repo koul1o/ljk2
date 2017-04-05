@@ -10,7 +10,7 @@ html {
       -ms-text-size-adjust: 100%;
 }
 body {
-  margin: 0;
+  margin: 15px;
 }
 article,
 aside,
@@ -5661,7 +5661,8 @@ button.list-group-item-danger.active:focus {
   border: 0;
 }
 .panel-group {
-  margin-bottom: 20px;
+  margin:15px;
+  margin-left: 0;
 }
 .panel-group .panel {
   margin-bottom: 0;
@@ -6784,4 +6785,28 @@ button.close {
 #documents {
 
   margin-top: 40px;
+}
+
+
+#right{
+    float: left;
+    max-width: 15%;
+  
+    
+}
+
+#left{
+    float:left;
+    width: 80%;
+    margin: 15px;
+    border-right: 1px #c1e2b3 solid;
+    
+}
+
+#documents>ul{
+   padding: 0;
+}
+
+#buttons_area{
+    margin: 15px;
 }

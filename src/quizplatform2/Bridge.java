@@ -25,13 +25,15 @@ import netscape.javascript.JSObject;
 
 public class Bridge {
 
-	private static final String QUESTION_NAME = "question";
+    private static final String QUESTION_NAME = "question";
 	
     private int time;
+    private int cnt=1;
     private JSObject window ;
     private String title;
     private WebEngine engine;
-    String docUrl = null;
+    String qUrl = null;
+    String nextUrl = null;
     
     HashMap<String, String> quizLinks;
     
@@ -53,29 +55,19 @@ public class Bridge {
                                 /* Update the global time passed everytime we load a new page */ 
                                 engine.executeScript("var time="+time+"");
                                 /* Check if we are in a document page and format the url removing the file:// prefix */ 
-                                if(engine.getTitle().toLowerCase().contains("document ") && !title.toLowerCase().contains(QUESTION_NAME)){
-                                    docUrl=engine.getLocation();
-                                    docUrl=docUrl.replace("file://","");
-                                }
-                                /* Update the doc url in the webpage */
-                                if (docUrl!=null){
-                                    engine.executeScript("var bUrl=\'"+docUrl+"\'"+"");
+                                if(title.toLowerCase().contains(QUESTION_NAME)){
+                                    qUrl=engine.getLocation();
+                                    qUrl=qUrl.replace("file://","");
+                                    engine.executeScript("var qUrl=\'" + qUrl + "\'");
+                                    engine.executeScript("sendTrace()");
                                     
-                                    // add the doc into the hashmap if it doesn't exist yet then update the quiz URL
-                                    if(!this.quizLinks.containsKey(docUrl) && !title.toLowerCase().contains(QUESTION_NAME)){
-                                    	this.quizLinks.put(docUrl, docUrl.replace(".html", "_"+QUESTION_NAME+"1.html"));
-                                    }
-                                    
-                                    /* 	if the quizLink point to a quiz (ie if the quiz hasn't already been finished) it changes the value of qUrl
-                                    	the next question of the quizz */
-                                    
-                                    if(this.quizLinks.get(docUrl) != null && this.quizLinks.get(docUrl).contains("_"+QUESTION_NAME)){
-                                    	engine.executeScript("var qUrl=\'" + this.quizLinks.get(docUrl) + "\'");
-                                    } else {
-                                    	engine.executeScript("var qUrl='#'");
-                                    }
+                                   // nextUrl=URLToNextQuestion(qUrl);
                                     
                                 }
+                                else{
+                                engine.executeScript("var qUrl=\'" + qUrl + "\'");
+                                }
+                               
                                
                             }
                     }
@@ -104,17 +96,15 @@ public class Bridge {
     }
     /* Upcall to this function from the page, to get the last trace on window exit */
     public void lastTrace(){
-        engine.executeScript("sendTrace();quit();");
+        engine.executeScript("quit();");
     }
     public void finalQuiz(){
         engine.executeScript("sendTrace();finalQuiz();");
     }
     
+    
     /* Upcall to this function from the page, to update the next question Url for a document quiz */
-    public void getUrl(String url){
-        URLToNextQuestion(url);
-        redirect(this.quizLinks.get(docUrl));
-    }
+   
     
     /**
      * This function changes the String <b>quizUrl</b> by adding 1 to the number of the quiz. So C://example/document1_quiz1.html would become C://example/document1_quiz2.html.<br>
@@ -127,39 +117,38 @@ public class Bridge {
      */
     
     public void URLToNextQuestion(String quizUrl){
-
-    	Pattern digitPattern = Pattern.compile("(\\d+)");
-
-    	Matcher matcher = digitPattern.matcher(quizUrl);
-    	StringBuffer result = new StringBuffer();
-    	int index = 0;
-    	while (matcher.find())
-    	{
-        	index = matcher.start();      	
-        }
-    	matcher.find(index);
-    	matcher.appendReplacement(result, String.valueOf(Integer.parseInt(matcher.group(1)) + 1));
-    	matcher.appendTail(result);
-
-    	String r = result.toString();
-        
-        File f = new File(r);
-    	if(!f.exists()){
-    		String s[] = r.split("/");
-    		r = "";
-    		s[s.length-1] = "documents.html";
+        cnt++;
+        String finalUrl="";
+    	File f = new File(quizUrl);
+        if(f.exists() && !f.isDirectory()) { 
+            String s[] = quizUrl.split("/");
+            String fs[] = quizUrl.split("/");
+            
+                        
+    		quizUrl = "";
+    		s[s.length-1] = "question"+cnt+".html";
+                fs[s.length-1] = "final_quiz.html";
     		int i = 0;
     		for(i=0; i<s.length; i++){
     			if(i != 0){
-    				r = r + "/" + s[i];
+    				quizUrl = quizUrl + "/" + s[i];
+                                finalUrl=finalUrl + "/" + fs[i];
     			} else {
-        			r = r + s[i];
+        			quizUrl = quizUrl + s[i];
+                                finalUrl=finalUrl + fs[i];
     			}
+                        File fn = new File(quizUrl);
+                        if(fn.exists() && !fn.isDirectory()) 
+                            engine.executeScript("var nextUrl=\'" + quizUrl + "\'");
+                        
+                        else
+                           engine.executeScript("var nextUrl=\'" + finalUrl + "\'");
+                        
+                        
     		}
-    		
-    	}
-    	
-		this.quizLinks.replace(docUrl, r);
+                
+        }
+       // return null;
                 
     }
     

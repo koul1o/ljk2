@@ -26,18 +26,21 @@ public class QuizPlatform2 extends Application {
 
     private double percent=0.0;
     public Bridge bridge;
+     
     @Override
     public void start(Stage primaryStage) {
     
         /* Create the WebView and WebEngine */
         WebView webView = new WebView();
         WebEngine engine = webView.getEngine();
+       
         
         /* Initialize the Bridge */
         bridge = new Bridge(engine,primaryStage);
         
         /* Load the first Url */
         engine.load(getClass().getResource("html/question1.html").toExternalForm());
+        
        
         /* Enable JS in the WebEngine */
         engine.setJavaScriptEnabled(true);
@@ -69,6 +72,7 @@ public class QuizPlatform2 extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
         
+        
         /* Using org.reactfx.util.FxTimer augment the progress bar periodicaly every 15min by 25% */
         FxTimer.runPeriodically(
         Duration.ofMillis(900000),
@@ -90,6 +94,7 @@ public class QuizPlatform2 extends Application {
             () -> { bridge.lastTrace();
                     bridge.exit();
                       });
+        
         primaryStage.setOnCloseRequest(exit());
     }
     
@@ -105,5 +110,6 @@ public class QuizPlatform2 extends Application {
     public static void main(String[] args) {
         launch(args);
     }
-        
+     
+    
 }

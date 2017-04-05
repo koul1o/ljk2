@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Document 2 - Question 1</title>
+    <title> Question 1</title>
     <link href="css/bootstrap.css" rel="stylesheet">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -14,7 +14,7 @@
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
   </head>
-  <body style="margin: 15px;">
+  <body>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script src="js/quizplatform.js"></script>
@@ -28,8 +28,7 @@
         <h1 align="center">Quiz</h1>  
       </div>
 
-     
-      <div class="container">
+      <div id="left">
         <div class="question">
           <h2 style="padding-top: 10px;">First Question</h2>
           <h4 style="padding-top: 10px;">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras mollis efficitur turpis, quis ultrices sem congue vel. Nunc id enim eu eros molestie eleifend. Aenean nec laoreet nisl, nec efficitur mauris. Phasellus vulputate lobortis orci in tempus. Duis volutpat quam vitae imperdiet dignissim. Nullam pretium eget enim et dictum. Suspendisse sit amet turpis posuere, lobortis elit nec, interdum erat. Cras turpis ligula, pulvinar eu ultrices id, semper eu turpis. </h4>
@@ -41,17 +40,32 @@
           </ul>
             <div id="message">Select an answer</div>
 
-        </div>
-      
-      <div id="buttons_area" style="padding-top: 15px;">
-       <a href="#" class="btn btn-success" role="button" onclick="checkAnswer();" style="float: right;">Submit</a>
-       <a href="#" class="btn btn-info" id="back" role="button" onclick="backToDoc();" style="float: right; margin-right: 5px;">Back to the document</a>
        
-        
+      
+      <div id="buttons_area" style="padding-top: 15px; padding-right: 15px;">
+       <a href="#" id="quiz_next" class="btn btn-success" role="button" onclick="checkAnswer();" style="float: right;">Submit</a>
+       
+         </div>
       </div>
       
     </div>
-    </div>
+        <div id="right">
+            
+            <div id="documents"> 
+                <h2>Documents</h2>  
+                <ul><a href="document1.html" onclick="  ">Document 1 </a></ul>
+                <ul><a href="document2.html" onclick="  ">Document 2 </a></ul>
+                <ul><a href="document3.html" onclick="  ">Document 3 </a></ul>
+                <ul><a href="document4.html" onclick="  ">Document 4 </a></ul>
+                <ul><a href="document5.html" onclick="  ">Document 5 </a></ul>
+
+
+      </div>
+            
+        </div>
+        
+        </div>
+  
 
   </body>
 </html>
