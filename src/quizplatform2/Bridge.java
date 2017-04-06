@@ -55,6 +55,7 @@ public class Bridge {
                     endTime.set(System.nanoTime());
                     elapsedTime.bind(Bindings.subtract(endTime, startTime));
                     if (cnt2>0){
+                    	System.out.println(time);
                         time=(int) (time+elapsedTime.divide(1_000_000).getValue());
                         System.out.println("Time: "+time+" Elapsed t: "+elapsedTime.divide(1_000_000).getValue() );
                     }
@@ -106,6 +107,7 @@ public class Bridge {
     
     /* Upcall to this function from the page, to update the global time passed  */
     public void updateTime(int time) {
+    	System.out.println(time + "/" + this.time);
         this.time = time;
         //System.out.println("Exit time: "+time);
     }
