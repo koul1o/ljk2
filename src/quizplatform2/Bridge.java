@@ -28,22 +28,19 @@ public class Bridge {
 
     private static final String QUESTION_NAME = "question";
 
-    int time;
-    private int cnt ,cnt2 = 1;
+    int time = 0;
+    private int cnt = 1;
     private JSObject window;
     private String title;
     private WebEngine engine;
     String qUrl = null;
     String nextUrl = null;
 
-    HashMap<String, String> quizLinks;
-
     public Bridge(WebEngine engine, Stage stage) {
-        time = -1100;
+
         final LongProperty startTime = new SimpleLongProperty();
         final LongProperty endTime = new SimpleLongProperty();
         final LongProperty elapsedTime = new SimpleLongProperty();
-        this.quizLinks = new HashMap<String, String>();
         engine.getLoadWorker().stateProperty().addListener((ObservableValue<? extends State> obs, State oldState, State newState) -> {
 
             switch (newState) {
@@ -54,11 +51,7 @@ public class Bridge {
                 case SUCCEEDED:
                     endTime.set(System.nanoTime());
                     elapsedTime.bind(Bindings.subtract(endTime, startTime));
-                    if (cnt2>0){
-                        time=(int) (time+elapsedTime.divide(1_000_000).getValue());
-                        System.out.println("Time: "+time+" Elapsed t: "+elapsedTime.divide(1_000_000).getValue() );
-                    }
-                    cnt2++;
+                    time = (int) (time + elapsedTime.divide(1_000_000).getValue());
                     break;
             }
 
@@ -70,6 +63,7 @@ public class Bridge {
                 window.setMember("java", this);
 
                 title = engine.getTitle();
+
                 stage.setTitle(engine.getTitle());
                 /* */
                 if (engine != null) {
@@ -80,13 +74,15 @@ public class Bridge {
                         qUrl = engine.getLocation();
                         qUrl = qUrl.replace("file://", "");
                         engine.executeScript("var qUrl=\'" + qUrl + "\'");
-                        engine.executeScript("sendTrace()");
+                        engine.executeScript("updateJavaTime()");
 
                         // nextUrl=URLToNextQuestion(qUrl);
                     } else if (title.toLowerCase().contains("quiz")) {
                         engine.executeScript("sendTrace()");
+
                     } else {
                         engine.executeScript("var qUrl=\'" + qUrl + "\'");
+
                     }
 
                 }
@@ -101,9 +97,6 @@ public class Bridge {
 //    public void setTime(long time) {
 //        this.time = time;
 //    }
-
-      
-    
     /* Upcall to this function from the page, to update the global time passed  */
     public void updateTime(int time) {
         this.time = time;

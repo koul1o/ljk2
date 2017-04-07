@@ -3,32 +3,44 @@ var start = startDate.getTime();
 var ms = 1;
 var time;
 var qUrl;
+var cnt=0;
 
-/**
- * Update the time passed since the intit of the platform
- * Function called from Class Bridge everytime we access a new page 
- */
 
+
+window.onload = function () {
+     var s = "hehheahe";
+        java.getTrace(s);
+
+};
+
+
+function loadFinal() {
+   
+        var s = time.toString() + "__DONE___" + pageName.toString();
+        java.getTrace(s);
+   
+
+}
 
 /** 
- * Upcall to Java to update the time passed since the intit of the platform
- */
-function updateJavaTime() {
-    var exitTime = timer() + time;
+  * Upcall to Java to update the time passed since the intit of the platform
+  */
+function updateJavaTime(){
+    var exitTime=timer()+time;
     java.updateTime(exitTime);
 }
 
 /** 
- *Upcall to Java sending the time and the name of accessed page
- */
-function sendTrace() {
+  *Upcall to Java sending the time and the name of accessed page
+  */
+function sendTrace(){
 
-    var pageName = document.title;
-    var s = time.toString() + "_" + pageName.toString();
+    var pageName=document.title;
+    var s = time.toString()+"_"+pageName.toString();
     java.getTrace(s);
     updateJavaTime();
 
-}
+ }
 
 function sendTraceQuestion() {
 
@@ -57,7 +69,7 @@ function finalQuiz() {
     var pageName = document.title;
     var exitTime = time + timer();
     var s = exitTime.toString() + "_" + pageName.toString();
-   
+
 
     updateJavaTime();
 }
@@ -79,7 +91,7 @@ function sendElementTrace() {
 
     var id = $('#accordion .in').parent().attr("id");
     var pageName = document.title + " - " + id;
-    var s = time.toString() + "_" + pageName.toString();
+    var s = (time+timer()).toString() + "_" + pageName.toString();
     java.getTrace(s);
     updateJavaTime();
 
@@ -106,6 +118,10 @@ function checkAnswer() {
         messageDiv.style.color = "green";
         java.URLToNextQuestion(qUrl);
         setNextUrl();
+    }
+    if(cnt<=0){
+        sendTrace();
+        cnt++;
     }
     var pageName = document.title;
     var s = (timer() + time).toString() + "_" + pageName.toString() + "_Answer: " + ans;
@@ -134,7 +150,7 @@ function backToQuiz() {
 
     var q = document.getElementById('back'); //or grab it by tagname etc
     q.href = qUrl;
-    sendTrace();
+    sendElementTrace();
 
 }
 
