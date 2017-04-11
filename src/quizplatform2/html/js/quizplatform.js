@@ -1,61 +1,11 @@
-var startDate = new Date();
-var start = startDate.getTime();
-var ms = 1;
-var time;
 var qUrl;
 var cnt=0;
-
-
-
-window.onload = function () {
-     var s = "hehheahe";
-        java.getTrace(s);
-
-};
-
-
-function loadFinal() {
-   
-        var s = time.toString() + "__DONE___" + pageName.toString();
-        java.getTrace(s);
-   
-
-}
-
-/** 
-  * Upcall to Java to update the time passed since the intit of the platform
-  */
-function updateJavaTime(){
-    var exitTime=timer()+time;
-    java.updateTime(exitTime);
-}
-
-/** 
-  *Upcall to Java sending the time and the name of accessed page
-  */
-function sendTrace(){
-
-    var pageName=document.title;
-    var s = time.toString()+"_"+pageName.toString();
-    java.getTrace(s);
-    updateJavaTime();
-
- }
-
-function sendTraceQuestion() {
-
-    var pageName = document.title;
-    var s = (timer() + time).toString() + "_" + pageName.toString();
-    java.getTrace(s);
-    updateJavaTime();
-
-}
-
 
 
 /** 
  * Upcall to Java sending the time and the name of the accesed page for the final page 
  */
+
 function quit() {
     var pageName = document.title;
     var exitTime = time + timer();
@@ -65,40 +15,33 @@ function quit() {
 }
 
 
-function finalQuiz() {
-    var pageName = document.title;
-    var exitTime = time + timer();
-    var s = exitTime.toString() + "_" + pageName.toString();
+function exitQuiz() {
 
 
-    updateJavaTime();
+
 }
 
-/** 
- * Calculate the time passed in a page in ms
- */
-function timer() {
-    var end = new Date();
-    ms = (end.getTime() - start);
-    return ms;
-}
 
 /** 
  * Upcall to Java sending the time and the page accessed in a dom element
  */
 function sendElementTrace() {
-
-
-    var id = $('#accordion .in').parent().attr("id");
-    var pageName = document.title + " - " + id;
-    var s = (time+timer()).toString() + "_" + pageName.toString();
-    java.getTrace(s);
-    updateJavaTime();
+    // var id = $('#accordion .in').parent().attr("id");
+    var id = event.srcElement.parentNode.parentNode.parentNode.id;
+    java.elementTrace(id);
 
 }
 
-function checkAnswer() {
+function sendElementTraceQ() {
+    // var id = $('#accordion .in').parent().attr("id");
+    var id = event.srcElement.id;
+    java.elementTrace(id);
 
+}
+
+
+
+function checkAnswer() {
     var message = 'Try again',
             selected = document.querySelector('input[value="correct"]:checked'),
             messageDiv = document.querySelector('#message');
@@ -114,20 +57,16 @@ function checkAnswer() {
 
 
     if (selected) {
+
+
         message = 'Correct';
         messageDiv.style.color = "green";
         java.URLToNextQuestion(qUrl);
         setNextUrl();
     }
-    if(cnt<=0){
-        sendTrace();
-        cnt++;
-    }
     var pageName = document.title;
-    var s = (timer() + time).toString() + "_" + pageName.toString() + "_Answer: " + ans;
-    java.getTrace(s);
-    updateJavaTime();
-
+    var s = "_Answer: " + ans;
+    java.elementTrace(s);
     messageDiv.innerHTML = message;
 }
 
@@ -160,8 +99,8 @@ function checkFinalAnswers() {
     var ans;
     for (var i = 0, length = radios.length; i < length; i++) {
         if (radios[i].checked) {
-            ans = radios[i].name + "_Answer: " + radios[i].value;
-            java.getTrace(ans);
+            ans = "_Answer: " + radios[i].value;
+            java.elementTrace(ans);
 
         }
     }

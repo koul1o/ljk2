@@ -6810,3 +6810,12 @@ button.close {
 #buttons_area{
     margin: 15px;
 }
+
+#logos{
+    display: none;
+    
+}
+
+.panel-body:last-child {
+    text-align: center;
+}

@@ -33,7 +33,8 @@ public class QuizPlatform2 extends Application {
     final LongProperty startTime = new SimpleLongProperty();
     final LongProperty endTime = new SimpleLongProperty();
     final LongProperty elapsedTime = new SimpleLongProperty();
-    int cnt2=0;
+    int cnt2 = 0;
+
     @Override
     public void start(Stage primaryStage) {
 //        startTime.set(0);
@@ -87,30 +88,6 @@ public class QuizPlatform2 extends Application {
                     progressBar.setProgress(percent);
                 });
 
-        /* Go to the final quiz after 1h */
-        FxTimer.runLater(
-                Duration.ofMillis(36000),
-                () -> {
-                    engine.load(getClass().getResource("html/final_quiz.html").toExternalForm());
-                    bridge.finalQuiz();
-
-                });
-        /* Exit the platform and the final quiz after 10m */
-        FxTimer.runLater(
-                Duration.ofMillis(42000),
-                () -> {
-                    bridge.lastTrace();
-                    bridge.exit();
-                });
-
-        primaryStage.setOnCloseRequest(exit());
-    }
-
-    /* Handles the platform exit. Collects the last trace prior to exit*/
-    public EventHandler<WindowEvent> exit() {
-        return (WindowEvent event) -> {
-            bridge.exitTrace();
-        };
     }
 
     public static void main(String[] args) {

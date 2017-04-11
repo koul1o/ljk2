@@ -13,6 +13,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.time.Duration;
 import java.util.HashMap;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -23,6 +24,7 @@ import javafx.concurrent.Worker.State;
 import javafx.scene.web.WebEngine;
 import javafx.stage.Stage;
 import netscape.javascript.JSObject;
+import org.reactfx.util.FxTimer;
 
 public class Bridge {
 
@@ -30,30 +32,20 @@ public class Bridge {
 
     int time = 0;
     private int cnt = 1;
+    private int cnt2 = 0;
     private JSObject window;
     private String title;
     private WebEngine engine;
+    final LongProperty startTime = new SimpleLongProperty();
+    final LongProperty endTime = new SimpleLongProperty();
+    final LongProperty elapsedTime = new SimpleLongProperty();
+    String traceT = "";
     String qUrl = null;
     String nextUrl = null;
 
     public Bridge(WebEngine engine, Stage stage) {
 
-        final LongProperty startTime = new SimpleLongProperty();
-        final LongProperty endTime = new SimpleLongProperty();
-        final LongProperty elapsedTime = new SimpleLongProperty();
         engine.getLoadWorker().stateProperty().addListener((ObservableValue<? extends State> obs, State oldState, State newState) -> {
-
-            switch (newState) {
-                case RUNNING:
-                    startTime.set(System.nanoTime());
-                    break;
-
-                case SUCCEEDED:
-                    endTime.set(System.nanoTime());
-                    elapsedTime.bind(Bindings.subtract(endTime, startTime));
-                    time = (int) (time + elapsedTime.divide(1_000_000).getValue());
-                    break;
-            }
 
             if (newState == State.SUCCEEDED) {
 
@@ -67,19 +59,38 @@ public class Bridge {
                 stage.setTitle(engine.getTitle());
                 /* */
                 if (engine != null) {
-                    /* Update the global time passed everytime we load a new page */
-                    engine.executeScript("var time=" + time + "");
+                    if (cnt2 < 1) {
+                        startTime.set(System.nanoTime());
+                        FxTimer.runLater(
+                                Duration.ofMillis(36000),
+                                () -> {
+                                    System.out.println("Time: " + time);
+                                    engine.load(getClass().getResource("html/final_quiz.html").toExternalForm());
+
+                                });
+                        FxTimer.runLater(
+                                Duration.ofMillis(42000),
+                                () -> {
+                                    System.out.println("Time: " + time);
+                                    exit();
+
+                                });
+                        cnt2++;
+
+                    }
+                    getTime();
+
+                    traceT = time + "_" + title;
+                    getTrace(traceT);
                     /* Check if we are in a document page and format the url removing the file:// prefix */
                     if (title.toLowerCase().contains(QUESTION_NAME)) {
                         qUrl = engine.getLocation();
                         qUrl = qUrl.replace("file://", "");
                         engine.executeScript("var qUrl=\'" + qUrl + "\'");
-                        engine.executeScript("updateJavaTime()");
+                        
 
                         // nextUrl=URLToNextQuestion(qUrl);
-                    } else if (title.toLowerCase().contains("quiz")) {
-                        engine.executeScript("sendTrace()");
-
+                    
                     } else {
                         engine.executeScript("var qUrl=\'" + qUrl + "\'");
 
@@ -90,44 +101,36 @@ public class Bridge {
         });
     }
 
-//    public long getTime() {
-//        return time;
-//    }
-//
-//    public void setTime(long time) {
-//        this.time = time;
-//    }
-    /* Upcall to this function from the page, to update the global time passed  */
-    public void updateTime(int time) {
-        this.time = time;
-        //System.out.println("Exit time: "+time);
-    }
-
     /* Function, to exit the platform */
     public void exit() {
-        //lastTrace();
+        getLastTrace(traceT);
         Platform.exit();
 
     }
 
     /* Upcall to this function from the page, to get the interaction trace */
-    public void getTrace(String j) {
-        System.out.println("Trace: " + j);
-        saveData(j);
+    public void getTrace(String trace) {
+        System.out.println("Trace: " + trace);
+        saveData(trace);
 
     }
 
-    /* Upcall to this function from the page, to get the last trace on window exit */
-    public void exitTrace() {
-        engine.executeScript("quit();");
+    public void getLastTrace(String trace) {
+        System.out.println("Trace: " + trace + "_Exit");
+        saveData(trace);
+
     }
 
-    public void lastTrace() {
-        engine.executeScript("quit();");
+    public void elementTrace(String element) {
+        getTime();
+        traceT = time + "_" + title + "_" + element;
+        getTrace(traceT);
     }
 
-    public void finalQuiz() {
-        engine.executeScript("finalQuiz();");
+    public void getTime() {
+        endTime.set(System.nanoTime());
+        elapsedTime.bind(Bindings.subtract(endTime, startTime));
+        time = (int) (0 + elapsedTime.divide(1_000_000).getValue());
     }
 
     /* Upcall to this function from the page, to update the next question Url for a document quiz */
