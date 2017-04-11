@@ -87,7 +87,14 @@ public class QuizPlatform2 extends Application {
                     percent += 0.25;
                     progressBar.setProgress(percent);
                 });
+        primaryStage.setOnCloseRequest(exit());
+    }
 
+    /* Handles the platform exit. Collects the last trace prior to exit*/
+    public EventHandler<WindowEvent> exit() {
+        return (WindowEvent event) -> {
+            bridge.exit();
+        };
     }
 
     public static void main(String[] args) {

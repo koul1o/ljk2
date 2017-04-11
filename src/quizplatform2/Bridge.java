@@ -61,6 +61,10 @@ public class Bridge {
                 if (engine != null) {
                     if (cnt2 < 1) {
                         startTime.set(System.nanoTime());
+                        getTime();
+                        traceT = time + "_" + title;
+                        getTrace(traceT);
+
                         FxTimer.runLater(
                                 Duration.ofMillis(36000),
                                 () -> {
@@ -77,20 +81,19 @@ public class Bridge {
                                 });
                         cnt2++;
 
-                    }
-                    getTime();
+                    } else {
+                        getTime();
 
-                    traceT = time + "_" + title;
-                    getTrace(traceT);
+                        traceT = time + "_" + title;
+                        getTrace(traceT);
+                    }
                     /* Check if we are in a document page and format the url removing the file:// prefix */
                     if (title.toLowerCase().contains(QUESTION_NAME)) {
                         qUrl = engine.getLocation();
                         qUrl = qUrl.replace("file://", "");
                         engine.executeScript("var qUrl=\'" + qUrl + "\'");
-                        
 
                         // nextUrl=URLToNextQuestion(qUrl);
-                    
                     } else {
                         engine.executeScript("var qUrl=\'" + qUrl + "\'");
 
@@ -116,9 +119,9 @@ public class Bridge {
     }
 
     public void getLastTrace(String trace) {
-        System.out.println("Trace: " + trace + "_Exit");
-        saveData(trace);
-
+        getTime();
+        traceT = time + "_" + title + "_Exit";
+        getTrace(traceT);
     }
 
     public void elementTrace(String element) {
