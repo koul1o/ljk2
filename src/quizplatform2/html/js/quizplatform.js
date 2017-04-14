@@ -7,20 +7,9 @@ var cnt=0;
  */
 
 function quit() {
-    var pageName = document.title;
-    var exitTime = time + timer();
-    var s = exitTime.toString() + "_" + pageName.toString() + "_Platform Exit";
-    java.getTrace(s);
+    
     java.exit();
 }
-
-
-function exitQuiz() {
-
-
-
-}
-
 
 /** 
  * Upcall to Java sending the time and the page accessed in a dom element
@@ -99,7 +88,7 @@ function checkFinalAnswers() {
     var ans;
     for (var i = 0, length = radios.length; i < length; i++) {
         if (radios[i].checked) {
-            ans = "_Answer: " + radios[i].value;
+            ans = radios[i].name+"_Answer: " + radios[i].value;
             java.elementTrace(ans);
 
         }
