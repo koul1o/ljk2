@@ -37,7 +37,7 @@ public class Bridge {
     private static final String QUESTION_NAME = "question";
     private static final String[] FORBIDDEN_WORDS = {QUESTION_NAME, "info", "final_quiz", "manual", "documents"};
     int time = 0;
-    private int cnt = 1;
+    private int cnt = 1,cnt2=1;
     private JSObject window;
     private String title;
     private WebEngine engine;
@@ -242,7 +242,7 @@ public class Bridge {
      * @param quizUrl - the url to save
      */
     public void URLToNextQuestion(String quizUrl) {
-        cnt++;
+        cnt2++;
         String finalUrl = "";
         File f = new File(quizUrl);
         if (f.exists() && !f.isDirectory()) {
@@ -250,7 +250,7 @@ public class Bridge {
             String fs[] = quizUrl.split("/");
 
             quizUrl = "";
-            s[s.length - 1] = "question" + cnt + ".html";
+            s[s.length - 1] = "question" + cnt2 + ".html";
             fs[s.length - 1] = "final_quiz.html";
             int i = 0;
             for (i = 0; i < s.length; i++) {
