@@ -37,7 +37,7 @@ public class Bridge {
     private static final String QUESTION_NAME = "question";
     private static final String[] FORBIDDEN_WORDS = {QUESTION_NAME, "info", "final_quiz", "manual", "documents"};
     int time = 0;
-    private int cnt = 1,cnt2=1;
+    private int cnt = 1, cnt2 = 1;
     private JSObject window;
     private String title;
     private WebEngine engine;
@@ -90,6 +90,7 @@ public class Bridge {
                 /* */
                 if (engine != null) {
                     {
+
                         if (!(title.toLowerCase().contains("final"))) {
                             engine.executeScript("setDocuments();");
                         }
@@ -99,6 +100,12 @@ public class Bridge {
                             getTime();
                             traceT = time + "_" + title;
                             getTrace(traceT);
+                            if (title.toLowerCase().contains("instructions")) {
+                                qUrl = engine.getLocation();
+                                qUrl = qUrl.replace("file://", "");
+                                qUrl = qUrl.replace("Instructions.html", "question1.html");
+                                engine.executeScript("var qUrl=\'" + qUrl + "\'");
+                            }
 
                             /* Using org.reactfx.util.FxTimer augment the progress bar periodicaly every 15min by 25% */
                             augmentBar = ((tTime / step));
@@ -162,7 +169,6 @@ public class Bridge {
                             qUrl = qUrl.replace("file://", "");
                             engine.executeScript("var qUrl=\'" + qUrl + "\'");
 
-                            // nextUrl=URLToNextQuestion(qUrl);
                         } else {
                             engine.executeScript("var qUrl=\'" + qUrl + "\'");
 
