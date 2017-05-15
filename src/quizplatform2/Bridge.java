@@ -95,7 +95,6 @@ public class Bridge {
                             engine.executeScript("setDocuments();");
                         }
                         if (cnt <= 1) {
-                            saveData("Time_Location_Value");
                             startTime.set(System.nanoTime());
                             getTime();
                             traceT = time + "_" + title;
