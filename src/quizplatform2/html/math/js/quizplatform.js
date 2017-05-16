@@ -84,8 +84,6 @@ function backToQuiz() {
 
     var q = document.getElementById('back'); //or grab it by tagname etc
     q.href = qUrl;
-    sendElementTrace();
-
 }
 
 

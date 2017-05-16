@@ -44,7 +44,7 @@ public class Bridge {
     private static final String QUESTION_NAME = "question";
     private static final String[] FORBIDDEN_WORDS = {QUESTION_NAME, "info", "final_quiz", "manual", "documents"};
     int time = 0;
-    private int cnt = 1,cnt2=1;
+    private int cnt = 1, cnt2 = 1;
     private JSObject window;
     private String title;
     private WebEngine engine;
@@ -67,8 +67,8 @@ public class Bridge {
     private String previousUrl = "";
     private String changedHtml = "";
     
-    private String srcPath = "src/quizplatform2/html/";
-    private String binPath = "bin/quizplatform2/html/";
+    private String srcPath = "";
+    private String binPath = "";
 
     public Bridge(WebEngine engine, Stage stage, QuizPlatform2 quizPlatform, float tTime, float fTime, float step, String root, String experimentId) {
 
@@ -78,6 +78,8 @@ public class Bridge {
         this.setup = this.setup.replace("html/", "");
         this.tTime = tTime;
         this.fTime = fTime;
+        this.srcPath = DOCUMENT_PATH;
+        this.binPath = srcPath.replace("src", "bin");
         try {
             findFiles(new File(DOCUMENT_PATH));
 
@@ -102,15 +104,21 @@ public class Bridge {
                 /* */
                 if (engine != null) {
                     {
+
                         if (!(title.toLowerCase().contains("final"))) {
                             engine.executeScript("setDocuments();");
                         }
                         if (cnt <= 1) {
-                            saveData("Time_Location_Value");
                             startTime.set(System.nanoTime());
                             getTime();
                             traceT = time + "_" + title;
                             getTrace(traceT);
+                            if (title.toLowerCase().contains("instructions")) {
+                                qUrl = engine.getLocation();
+                                qUrl = qUrl.replace("file://", "");
+                                qUrl = qUrl.replace("Instructions.html", "question1.html");
+                                engine.executeScript("var qUrl=\'" + qUrl + "\'");
+                            }
 
                             /* Using org.reactfx.util.FxTimer augment the progress bar periodicaly every 15min by 25% */
                             augmentBar = ((tTime / step));
@@ -174,7 +182,6 @@ public class Bridge {
                             qUrl = qUrl.replace("file://", "");
                             engine.executeScript("var qUrl=\'" + qUrl + "\'");
 
-                            // nextUrl=URLToNextQuestion(qUrl);
                         } else {
                             engine.executeScript("var qUrl=\'" + qUrl + "\'");
 
@@ -199,6 +206,9 @@ public class Bridge {
     public void getTrace(String trace) {
         System.out.println("Trace: " + trace);
         saveData(trace);
+        if(!this.previousUrl.equals(this.engine.getLocation()) && !this.changedHtml.equals("")){
+        	this.savePage();
+        }
     }
         
     public void getLastTrace(String trace) {
@@ -543,8 +553,8 @@ public class Bridge {
     	for(int i = 0; i<Bridge.allFiles[0].length; i++){
 
     		CopyOption options = REPLACE_EXISTING;
-    		Path source = Paths.get(this.srcPath + Bridge.allFiles[0][i]);
-    		Path target = Paths.get(this.binPath + Bridge.allFiles[0][i]);
+    		Path source = Paths.get(this.srcPath + File.separator + Bridge.allFiles[0][i]);
+    		Path target = Paths.get(this.binPath + File.separator + Bridge.allFiles[0][i]);
         	try {
 				Files.copy(source, target, options);
 			} catch (IOException e) {
