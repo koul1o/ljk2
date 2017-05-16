@@ -4,30 +4,24 @@ package quizplatform2;
  *
  * @author koul1o
  */
-import java.io.File;
 import java.net.URL;
-import java.time.Duration;
-import java.util.HashMap;
 import javafx.application.Application;
 import javafx.event.EventHandler;
-import static javafx.application.Application.launch;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.LongProperty;
 import javafx.beans.property.SimpleLongProperty;
-import javafx.beans.value.ObservableValue;
-import javafx.concurrent.Worker;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
-
-import org.reactfx.util.FxTimer;
 
 public class QuizPlatform2 extends Application {
 
@@ -53,10 +47,14 @@ public class QuizPlatform2 extends Application {
         WebView webView = new WebView();
         WebEngine engine = webView.getEngine();
         setProperties();
+        
+        webView.setContextMenuEnabled(false);
 
         /* Initialize the Bridge */
         bridge = new Bridge(engine, primaryStage, this, tTime, fTime, step, root, experimentId);
-
+        
+        createContextMenu(webView, bridge);
+        
         /* Load the first Url */
         engine.load(getClass().getResource(root + START_URL).toExternalForm());
         /* Enable JS in the WebEngine */
@@ -165,6 +163,21 @@ public class QuizPlatform2 extends Application {
             System.out.println("Property Experiment Id missing, default value set: " + this.experimentId + "  To change this parameter set experimentId=id of setup in run.bat");
         }
 
+    }
+    
+    private void createContextMenu(WebView webView, Bridge bridge) {
+        ContextMenu contextMenu = new ContextMenu();
+        MenuItem highlight = new MenuItem("Highlight");
+        highlight.setOnAction(e -> bridge.checkHighlight());
+        contextMenu.getItems().addAll(highlight);
+
+        webView.setOnMousePressed(e -> {
+            if (e.getButton() == MouseButton.SECONDARY) {
+                contextMenu.show(webView, e.getScreenX(), e.getScreenY());
+            } else {
+                contextMenu.hide();
+            }
+        });
     }
 
     public static void main(String[] args) {
