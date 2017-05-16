@@ -446,14 +446,20 @@ public class Bridge {
                 new SimpleDateFormat("yyyyMMdd_HHmmss");
                 Date date = new Date();
 
-                f = new File(filepath);
+                f = new File(this.setup);
+                
+                if(!f.exists()){
+                	f.mkdir();
+                }
+
+                f = new File(this.setup + File.separator + filepath);
                 while (f.exists()) {
                     filepath = incrementString(filepath);
-                    f = new File(filepath);
+                    f = new File(this.setup + File.separator + filepath);
                     cpt++;
                 }
 
-                this.fullFilepath = filepath;
+                this.fullFilepath = this.setup + File.separator + filepath;
                 f.createNewFile();
                 sb.append("sep=,");
                 sb.append('\n');
