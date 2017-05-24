@@ -58,7 +58,11 @@ public class QuizPlatform2 extends Application {
         }
         
         /* Load the first Url */
+<<<<<<< HEAD
         engine.load(getClass().getResource("/bin/quizplatform2/" + root + START_URL).toExternalForm());
+=======
+        engine.load(getClass().getResource(root + START_URL).toExternalForm());
+>>>>>>> branch 'master' of https://github.com/koul1o/ljk2.git
         /* Enable JS in the WebEngine */
         engine.setJavaScriptEnabled(true);
 
