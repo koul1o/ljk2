@@ -556,7 +556,7 @@ public class Bridge {
     	String highlightedText = this.engine.executeScript("checkHighlight()").toString();
         this.previousUrl = this.engine.getLocation().replace("file:///", "");
         this.changedHtml = (String)this.engine.executeScript("document.documentElement.outerHTML");
-        this.getTrace(time + "_" + title + "_" + this.section + "_highlighted_" + highlightedText);
+        this.getTrace(time + "_" + title + this.section + "_highlighted_" + highlightedText);
     }
     
     public void loadUserData(String filepath) {
