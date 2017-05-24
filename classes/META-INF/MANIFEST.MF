@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Implementation-Title: ljk2
+Implementation-Version: 0.0.1-SNAPSHOT
+Built-By: Neliron
+Implementation-Vendor-Id: ljk2
+Class-Path: ./ reactfx-2.0-M3.jar
+Build-Jdk: 1.8.0_112
+Created-By: Maven Integration for Eclipse
+Main-Class: quizplatform2.QuizPlatform2
+
