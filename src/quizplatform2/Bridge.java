@@ -60,7 +60,7 @@ public class Bridge {
     final LongProperty endTime = new SimpleLongProperty();
     final LongProperty elapsedTime = new SimpleLongProperty();
     String traceT = "";
-    String qUrl = null;
+    String qUrl = "";
     String nextUrl = null;
     private boolean firstStat = true;
     private String experimentId = "";
@@ -142,7 +142,7 @@ public class Bridge {
                                     });
 
                             FxTimer.runLater(
-                                    Duration.ofMillis((long) (tTime * MILIS)),
+                                    Duration.ofMillis((long) ((tTime * MILIS) + 3000)), // adds 3 seconds to the time so that the progress bar is full during 3 seconds
                                     () -> {
                                         quizPlatform.percent = 0;
                                         augmentBar = ((fTime / step));
@@ -155,7 +155,7 @@ public class Bridge {
                                                 });
 
                                         quizPlatform.progressBar.setProgress(quizPlatform.percent);
-                                        engine.load("./" + root + "final_quiz.html");
+                                        engine.load(getClass().getResource(binPath.substring(1) + "/final_quiz.html").toExternalForm());
 
                                     });
 
@@ -168,7 +168,7 @@ public class Bridge {
                                             timer2.stop();
                                             quizPlatform.percent = 0;
                                             quizPlatform.progressBar.setProgress(quizPlatform.percent);
-                                            engine.load("./" + root + "info.html");
+                                            engine.load(getClass().getResource(binPath.substring(1) + "/info.html").toExternalForm());
                                         }
                                     });
                             cnt++;
@@ -285,7 +285,7 @@ public class Bridge {
 
             quizUrl = "";
             s[s.length - 1] = "question" + cnt2 + ".html";
-            fs[s.length - 1] = "final_quiz.html";
+            fs[s.length - 1] = "questionCompleted.html";
             int i = 0;
             for (i = 0; i < s.length; i++) {
                 if (i != 0) {
@@ -295,12 +295,14 @@ public class Bridge {
                     quizUrl = quizUrl + s[i];
                     finalUrl = finalUrl + fs[i];
                 }
-                File fn = new File(quizUrl);
-                if (fn.exists() && !fn.isDirectory()) {
-                    engine.executeScript("var nextUrl=\'" + quizUrl + "\'");
-                } else {
-                    engine.executeScript("var nextUrl=\'" + finalUrl + "\'");
-                }
+            }
+
+            File fn = new File(quizUrl);
+            if (fn.exists() && !fn.isDirectory()) {
+                engine.executeScript("var nextUrl=\'" + quizUrl + "\'");
+            } else {
+            	cnt2 = 1;
+                engine.executeScript("var nextUrl=\'" + finalUrl + "\'");
             }
         }
     }

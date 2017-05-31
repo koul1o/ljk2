@@ -20,7 +20,6 @@ function sendElementTrace() {
 
 function sendElementTraceQ() {
     // var id = $('#accordion .in').parent().attr("id");
-<<<<<<< HEAD
     var id = event.srcElement.name+"_"+event.srcElement.id;
     java.elementTrace(id);
 
@@ -202,7 +201,6 @@ function checkHighlight(){
             } else {
             	highlight();
             	return selectionValue;
-=======
     var id = event.srcElement.id;
     java.elementTrace(id);
 
@@ -344,7 +342,6 @@ function checkHighlight(){
                 unHighlight();
             } else {
             	highlight();
->>>>>>> branch 'master' of https://github.com/koul1o/ljk2.git
             }
         }
     }

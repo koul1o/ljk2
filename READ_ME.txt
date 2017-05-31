@@ -1,0 +1,1 @@
+If you use the second design, please copy the questionCompleted.html to the folder containing your questionX.html files in the src folder
