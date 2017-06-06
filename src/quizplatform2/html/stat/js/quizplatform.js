@@ -173,7 +173,7 @@ function collectInfo() {
     }
     for (var i = 0, length = info.length; i < length; i++) {
 
-        if (!info[i].value ) {
+        if (!info[i].value && info[i].id != "Email") {
             java.print(i);
             message.style.display = "";
             

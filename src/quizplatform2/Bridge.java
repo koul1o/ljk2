@@ -15,6 +15,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.nio.file.CopyOption;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileVisitOption;
@@ -70,6 +72,9 @@ public class Bridge {
     private static final float MILIS = 60000;
     private float augmentBar;
     private Timer timer2;
+    private Timer t;
+    private Timer timerAutoQuiz;
+    private Timer demogTimer;
     private String setup;
     private float tTime, fTime;
     
@@ -80,6 +85,7 @@ public class Bridge {
     
     private String srcPath = "";
     private String binPath = "";
+	private Timer timerAutoDemog;
 
     public Bridge(WebEngine engine, Stage stage, QuizPlatform2 quizPlatform, float tTime, float fTime, float step, String root, String experimentId) {
 
@@ -116,7 +122,7 @@ public class Bridge {
                 if (engine != null) {
                     {
 
-                        if (!(title.toLowerCase().contains("final"))) {
+                        if (!title.toLowerCase().contains("final") && !title.toLowerCase().contains("demographic")) {
                             engine.executeScript("setDocuments();");
                         }
                         if (cnt <= 1) {
@@ -141,8 +147,9 @@ public class Bridge {
                                         quizPlatform.progressBar.setProgress(quizPlatform.percent);
                                     });
 
-                            FxTimer.runLater(
-                                    Duration.ofMillis((long) ((tTime * MILIS) + 3000)), // adds 3 seconds to the time so that the progress bar is full during 3 seconds
+                            // call either by the timerAutoQuiz or when the final question of the training quiz is correctly answered, starts the demogTimer
+                            this.t = FxTimer.create(
+                                    Duration.ofMillis(1),
                                     () -> {
                                         quizPlatform.percent = 0;
                                         augmentBar = ((fTime / step));
@@ -156,13 +163,28 @@ public class Bridge {
 
                                         quizPlatform.progressBar.setProgress(quizPlatform.percent);
                                         engine.load(getClass().getResource(binPath.substring(1) + "/final_quiz.html").toExternalForm());
-
+                                        this.timerAutoDemog.restart();
                                     });
-
-                            FxTimer.runLater(
-                                    Duration.ofMillis((long) ((tTime + fTime) * MILIS)),
+                            
+                            // this timer is used to launch the t timer. Avoid to have all arguments as private instance variable
+                            this.timerAutoQuiz = FxTimer.runLater(
+                                    Duration.ofMillis((long) ((tTime * MILIS) + 3000)), // adds 3 seconds to the time so that the progress bar is full during 3 seconds
                                     () -> {
-                                        System.out.println("Entering demog");
+                                    	//sends to the final quiz
+                                        this.t.restart();
+                                    });
+                            
+                            this.timerAutoDemog = FxTimer.create(
+                                    Duration.ofMillis((long) ((tTime * MILIS) + 3000)), // adds 3 seconds to the time so that the progress bar is full during 3 seconds
+                                    () -> {
+                                    	//sends to the final quiz
+                                        this.demogTimer.restart();
+                                    });
+                            
+                            this.demogTimer = FxTimer.create(
+                                    Duration.ofMillis((long) (1)),
+                                    () -> {
+                                        //System.out.println("Entering demog");
                                         if (title.toLowerCase().contains("final")) {
                                             engine.executeScript("checkFinalAnswers();");
                                             timer2.stop();
@@ -278,14 +300,21 @@ public class Bridge {
     public void URLToNextQuestion(String quizUrl) {
         cnt2++;
         String finalUrl = "";
+        try {
+        	quizUrl = URLDecoder.decode(quizUrl, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         File f = new File(quizUrl);
+        System.out.println(f.getAbsolutePath());
         if (f.exists() && !f.isDirectory()) {
             String s[] = quizUrl.split("/");
             String fs[] = quizUrl.split("/");
 
             quizUrl = "";
             s[s.length - 1] = "question" + cnt2 + ".html";
-            fs[s.length - 1] = "questionCompleted.html";
+            fs[s.length - 1] = "final_quiz.html";
             int i = 0;
             for (i = 0; i < s.length; i++) {
                 if (i != 0) {
@@ -296,12 +325,16 @@ public class Bridge {
                     finalUrl = finalUrl + fs[i];
                 }
             }
+            
+
+            System.out.println(quizUrl);
 
             File fn = new File(quizUrl);
             if (fn.exists() && !fn.isDirectory()) {
                 engine.executeScript("var nextUrl=\'" + quizUrl + "\'");
             } else {
             	cnt2 = 1;
+            	this.quizFinished();
                 engine.executeScript("var nextUrl=\'" + finalUrl + "\'");
             }
         }
@@ -580,52 +613,39 @@ public class Bridge {
      * Copies all the html files from the src directory to the bin directory, thus resetting the highlighting
      */
     public void resetFiles(){
-    	File f = new File(this.binPath);
-    	if(f.exists()){
-	    	for(int i = 0; i<Bridge.allFiles[0].length; i++){
-	
-	    		CopyOption options = REPLACE_EXISTING;
-	    		Path source = Paths.get(this.srcPath + File.separator + Bridge.allFiles[0][i]);
-	    		Path target = Paths.get(this.binPath + File.separator + Bridge.allFiles[0][i]);
-	        	try {
-					Files.copy(source, target, options);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-	        	
-	    	}
-    	} else {
-    		Path source = Paths.get(this.srcPath);
-    		Path target = Paths.get(this.binPath);
-    		try {
-				Files.walkFileTree(source, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE,
-				         new SimpleFileVisitor<Path>() {
-				             @Override
-				             public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
-				                 throws IOException
-				             {
-				                 Path targetdir = target.resolve(source.relativize(dir));
-				                 try {
-				                     Files.copy(dir, targetdir);
-				                 } catch (FileAlreadyExistsException e) {
-				                      if (!Files.isDirectory(targetdir))
-				                          throw e;
-				                 }
-				                 return FileVisitResult.CONTINUE;
-				             }
-				             @Override
-				             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
-				                 throws IOException
-				             {
-				                 Files.copy(file, target.resolve(source.relativize(file)));
-				                 return FileVisitResult.CONTINUE;
-				             }
-				         });
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+    	Path source = Paths.get(this.srcPath);
+		Path target = Paths.get(this.binPath);
+		try {
+			Files.walkFileTree(source, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE,
+			         new SimpleFileVisitor<Path>() {
 
-    	}
+             			 private CopyOption options = REPLACE_EXISTING;
+			             @Override
+			             public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
+			                 throws IOException
+			             {
+
+			                 Path targetdir = target.resolve(source.relativize(dir));
+			                 try {
+			                	 if(!targetdir.toFile().exists() || !targetdir.toFile().isDirectory())
+			                		 Files.copy(dir, targetdir, options);
+			                 } catch (FileAlreadyExistsException e) {
+			                      if (!Files.isDirectory(targetdir))
+			                          throw e;
+			                 }
+			                 return FileVisitResult.CONTINUE;
+			             }
+			             @Override
+			             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+			                 throws IOException
+			             {
+			                 Files.copy(file, target.resolve(source.relativize(file)), options);
+			                 return FileVisitResult.CONTINUE;
+			             }
+			         });
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
     }
     
     public String getDocumentsFolderPath(){
@@ -637,5 +657,15 @@ public class Bridge {
     		folder += tmp[i] + "/";
     	}
     	return folder;
+    }
+    
+    public void quizFinished(){
+    	this.timerAutoQuiz.stop();
+    	this.t.restart();
+    }
+    
+    public void finalQuizFinished(){
+    	this.timerAutoDemog.stop();
+    	this.demogTimer.restart();
     }
 }
