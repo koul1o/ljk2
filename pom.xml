@@ -67,6 +67,7 @@
 								<exclude>html/</exclude>
 								<exclude>pom.xml</exclude>
 								<exclude>*.bat</exclude>
+								<exclude>*.sh</exclude>
 								<exclude>.git/</exclude>
 								<exclude>Readme.txt</exclude>
 								<exclude>.classpath</exclude>
