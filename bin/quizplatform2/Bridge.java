@@ -41,11 +41,10 @@ import javafx.beans.property.LongProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Worker.State;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.web.WebEngine;
 import javafx.stage.Stage;
 import netscape.javascript.JSObject;
-import quizplatform2.Bridge;
-
 import org.reactfx.util.FxTimer;
 import org.reactfx.util.Timer;
 
@@ -53,17 +52,16 @@ public class Bridge {
 
     private static final String QUESTION_NAME = "question";
     private static final String[] FORBIDDEN_WORDS = {QUESTION_NAME, "info", "final_quiz", "manual", "documents"};
-    int time = 0;
-    private int cnt = 1, cnt2 = 1;
+    private int cnt = 1, cnt2 = 1, time = 0;
     private JSObject window;
     private String title;
     private WebEngine engine;
     final LongProperty startTime = new SimpleLongProperty();
     final LongProperty endTime = new SimpleLongProperty();
     final LongProperty elapsedTime = new SimpleLongProperty();
-    String traceT = "";
-    String qUrl = "";
-    String nextUrl = null;
+    private String traceT = "";
+    private String qUrl = "";
+    private String nextUrl = null;
     private boolean firstStat = true;
     private String experimentId = "";
     private String fullFilepath = "";
@@ -77,24 +75,19 @@ public class Bridge {
     private Timer demogTimer;
     private String setup;
     private float tTime, fTime;
-    
+    private double percent = 0.0;
     private String previousUrl = "";
     private String changedHtml = "";
-    
     private String section = "";
-    
     private String srcPath = "";
     private String binPath = "";
-	private Timer timerAutoDemog;
+    private Timer timerAutoDemog;
 
-    public Bridge(WebEngine engine, Stage stage, QuizPlatform2 quizPlatform, float tTime, float fTime, float step, String root, String experimentId) {
+    public Bridge(WebEngine engine, Stage stage, QuizPlatform2 quizPlatform, float tTime, float fTime, float step, String root, String experimentId, ProgressBar progressBar) {
 
         String DOCUMENT_PATH = "./src" + File.separator + "quizplatform2" + File.separator + root;
-        this.experimentId = experimentId;
         this.setup = root;
         this.setup = this.setup.replace("html/", "");
-        this.tTime = tTime;
-        this.fTime = fTime;
         this.srcPath = DOCUMENT_PATH;
         this.binPath = this.srcPath.replace("src", "bin");
         try {
@@ -143,44 +136,44 @@ public class Bridge {
                             Timer timer = FxTimer.runPeriodically(
                                     Duration.ofMillis((long) (augmentBar * MILIS)),
                                     () -> {
-                                        quizPlatform.percent += 1 / step;
-                                        quizPlatform.progressBar.setProgress(quizPlatform.percent);
+                                        percent += 1 / step;
+                                        progressBar.setProgress(percent);
                                     });
 
                             // call either by the timerAutoQuiz or when the final question of the training quiz is correctly answered, starts the demogTimer
                             this.t = FxTimer.create(
                                     Duration.ofMillis(1),
                                     () -> {
-                                        quizPlatform.percent = 0;
+                                        percent = 0;
                                         augmentBar = ((fTime / step));
                                         timer.stop();
                                         timer2 = FxTimer.runPeriodically(
                                                 Duration.ofMillis((long) (augmentBar * MILIS)),
                                                 () -> {
-                                                    quizPlatform.percent += 1 / step;
-                                                    quizPlatform.progressBar.setProgress(quizPlatform.percent);
+                                                    percent += 1 / step;
+                                                    progressBar.setProgress(percent);
                                                 });
 
-                                        quizPlatform.progressBar.setProgress(quizPlatform.percent);
+                                        progressBar.setProgress(percent);
                                         engine.load(getClass().getResource(binPath.substring(1) + "/final_quiz.html").toExternalForm());
                                         this.timerAutoDemog.restart();
                                     });
-                            
+
                             // this timer is used to launch the t timer. Avoid to have all arguments as private instance variable
                             this.timerAutoQuiz = FxTimer.runLater(
                                     Duration.ofMillis((long) ((tTime * MILIS) + 3000)), // adds 3 seconds to the time so that the progress bar is full during 3 seconds
                                     () -> {
-                                    	//sends to the final quiz
+                                        //sends to the final quiz
                                         this.t.restart();
                                     });
-                            
+
                             this.timerAutoDemog = FxTimer.create(
                                     Duration.ofMillis((long) ((tTime * MILIS) + 3000)), // adds 3 seconds to the time so that the progress bar is full during 3 seconds
                                     () -> {
-                                    	//sends to the final quiz
+                                        //sends to the final quiz
                                         this.demogTimer.restart();
                                     });
-                            
+
                             this.demogTimer = FxTimer.create(
                                     Duration.ofMillis((long) (1)),
                                     () -> {
@@ -188,8 +181,8 @@ public class Bridge {
                                         if (title.toLowerCase().contains("final")) {
                                             engine.executeScript("checkFinalAnswers();");
                                             timer2.stop();
-                                            quizPlatform.percent = 0;
-                                            quizPlatform.progressBar.setProgress(quizPlatform.percent);
+                                            percent = 0;
+                                            progressBar.setProgress(percent);
                                             engine.load(getClass().getResource(binPath.substring(1) + "/info.html").toExternalForm());
                                         }
                                     });
@@ -200,7 +193,7 @@ public class Bridge {
                             traceT = time + "_" + title;
 
                             if (!title.toLowerCase().contains(QUESTION_NAME)) {
-                            	this.section = "_Panel 1";
+                                this.section = "_Panel 1";
                                 traceT = time + "_" + title + this.section;
                             }
                             getTrace(traceT);
@@ -240,11 +233,11 @@ public class Bridge {
     public void getTrace(String trace) {
         System.out.println("Trace: " + trace);
         saveData(trace);
-        if(!this.previousUrl.equals(this.engine.getLocation()) && !this.changedHtml.equals("")){
-        	this.savePage();
+        if (!this.previousUrl.equals(this.engine.getLocation()) && !this.changedHtml.equals("")) {
+            this.savePage();
         }
     }
-        
+
     public void getLastTrace(String trace) {
         getTime();
         traceT = time + "_" + title + "_Exit";
@@ -301,11 +294,11 @@ public class Bridge {
         cnt2++;
         String finalUrl = "";
         try {
-        	quizUrl = URLDecoder.decode(quizUrl, "UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+            quizUrl = URLDecoder.decode(quizUrl, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         File f = new File(quizUrl);
         System.out.println(f.getAbsolutePath());
         if (f.exists() && !f.isDirectory()) {
@@ -325,7 +318,6 @@ public class Bridge {
                     finalUrl = finalUrl + fs[i];
                 }
             }
-            
 
             System.out.println(quizUrl);
 
@@ -333,8 +325,8 @@ public class Bridge {
             if (fn.exists() && !fn.isDirectory()) {
                 engine.executeScript("var nextUrl=\'" + quizUrl + "\'");
             } else {
-            	cnt2 = 1;
-            	this.quizFinished();
+                cnt2 = 1;
+                this.quizFinished();
                 engine.executeScript("var nextUrl=\'" + finalUrl + "\'");
             }
         }
@@ -342,6 +334,7 @@ public class Bridge {
 
     /**
      * Adds one to the last digit of the argument
+     *
      * @param sti the String to increment
      * @return the modified String
      */
@@ -398,7 +391,7 @@ public class Bridge {
                         al.put(key, value);
                     }
                     if (!allFileList.containsKey(key)) {
-                    	allFileList.put(key, value);
+                        allFileList.put(key, value);
                     }
                 }
             }
@@ -410,7 +403,7 @@ public class Bridge {
                 Bridge.files[1][i] = al.get(key);
                 i++;
             }
-            
+
             Bridge.allFiles = new String[2][allFileList.size()];
             SortedSet<String> sortedKeysAllFiles = new TreeSet<String>(allFileList.keySet());
             int j = 0;
@@ -468,7 +461,7 @@ public class Bridge {
      * @param j - the string to save
      */
     public void saveData(String j) {
-    	this.saveData(j, experimentId + "_1.csv");
+        this.saveData(j, experimentId + "_1.csv");
     }
 
     /**
@@ -498,11 +491,11 @@ public class Bridge {
                 int cpt = 1;
                 new SimpleDateFormat("yyyyMMdd_HHmmss");
                 Date date = new Date();
-                
+
                 f = new File(this.setup);
-                
-                if(!f.exists()){
-                	f.mkdir();
+
+                if (!f.exists()) {
+                    f.mkdir();
                 }
 
                 f = new File(this.setup + File.separator + filepath);
@@ -565,42 +558,42 @@ public class Bridge {
     public void execute(Consumer<Object> callback, String function, Object... args) {
         callback.accept(window.call(function, args));
     }
-    
-    public void savePage(){
-    	
-    	StringBuilder sb = new StringBuilder();
+
+    public void savePage() {
+
+        StringBuilder sb = new StringBuilder();
 
         File f = new File(this.previousUrl.replaceAll("src", "bin"));
-        if(f.exists()){
-        	this.changedHtml = this.changedHtml.replaceAll("(<div id=\"documents\">)[^&]*(</div>)", "$1 <h2>Documents</h2> $2");
-	        sb.append(this.changedHtml);
-	        FileWriter fw;
-			try {
-				fw = new FileWriter(f, false);
-		        BufferedWriter bw = new BufferedWriter(fw);
-		        PrintWriter pw = new PrintWriter(bw);
-		        pw.write(sb.toString());
-		        pw.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+        if (f.exists()) {
+            this.changedHtml = this.changedHtml.replaceAll("(<div id=\"documents\">)[^&]*(</div>)", "$1 <h2>Documents</h2> $2");
+            sb.append(this.changedHtml);
+            FileWriter fw;
+            try {
+                fw = new FileWriter(f, false);
+                BufferedWriter bw = new BufferedWriter(fw);
+                PrintWriter pw = new PrintWriter(bw);
+                pw.write(sb.toString());
+                pw.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
-    
-    public void checkHighlight(){
-    	String highlightedText = this.engine.executeScript("checkHighlight()").toString();
+
+    public void checkHighlight() {
+        String highlightedText = this.engine.executeScript("checkHighlight()").toString();
         this.previousUrl = this.engine.getLocation().replace("file:///", "");
-        this.changedHtml = (String)this.engine.executeScript("document.documentElement.outerHTML");
+        this.changedHtml = (String) this.engine.executeScript("document.documentElement.outerHTML");
         this.getTrace(time + "_" + title + this.section + "_highlighted_" + highlightedText);
     }
-    
+
     public void loadUserData(String filepath) {
         StringBuilder sb = new StringBuilder();
         try {
-        	String line = "";
+            String line = "";
             File file = new File(filepath);
-        	BufferedReader br = new BufferedReader(new FileReader(file));
-            while((line = br.readLine()) != null) {
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            while ((line = br.readLine()) != null) {
                 sb.append(line);
             }
             br.close();
@@ -608,64 +601,67 @@ public class Bridge {
             e.printStackTrace();
         }
     }
-    
+
     /**
-     * Copies all the html files from the src directory to the bin directory, thus resetting the highlighting
+     * Copies all the html files from the src directory to the bin directory,
+     * thus resetting the highlighting
      */
-    public void resetFiles(){
-    	Path source = Paths.get(this.srcPath);
-		Path target = Paths.get(this.binPath);
-		try {
-			Files.walkFileTree(source, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE,
-			         new SimpleFileVisitor<Path>() {
+    public void resetFiles() {
+        Path source = Paths.get(this.srcPath);
+        Path target = Paths.get(this.binPath);
+        try {
+            Files.walkFileTree(source, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE,
+                    new SimpleFileVisitor<Path>() {
 
-             			 private CopyOption options = REPLACE_EXISTING;
-			             @Override
-			             public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
-			                 throws IOException
-			             {
+                private CopyOption options = REPLACE_EXISTING;
 
-			                 Path targetdir = target.resolve(source.relativize(dir));
-			                 try {
-			                	 if(!targetdir.toFile().exists() || !targetdir.toFile().isDirectory())
-			                		 Files.copy(dir, targetdir, options);
-			                 } catch (FileAlreadyExistsException e) {
-			                      if (!Files.isDirectory(targetdir))
-			                          throw e;
-			                 }
-			                 return FileVisitResult.CONTINUE;
-			             }
-			             @Override
-			             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
-			                 throws IOException
-			             {
-			                 Files.copy(file, target.resolve(source.relativize(file)), options);
-			                 return FileVisitResult.CONTINUE;
-			             }
-			         });
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+                @Override
+                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
+                        throws IOException {
+
+                    Path targetdir = target.resolve(source.relativize(dir));
+                    try {
+                        if (!targetdir.toFile().exists() || !targetdir.toFile().isDirectory()) {
+                            Files.copy(dir, targetdir, options);
+                        }
+                    } catch (FileAlreadyExistsException e) {
+                        if (!Files.isDirectory(targetdir)) {
+                            throw e;
+                        }
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+                        throws IOException {
+                    Files.copy(file, target.resolve(source.relativize(file)), options);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
-    
-    public String getDocumentsFolderPath(){
-    	String filePath = getClass().getResource("html/" + this.setup + "/documents.html").toExternalForm().replaceAll("file:/", "");
-    	String[] tmp = filePath.split("/");
-    	String folder = "";
-    	tmp[tmp.length-1] = "";
-    	for(int i = 0; i < tmp.length; i++){
-    		folder += tmp[i] + "/";
-    	}
-    	return folder;
+
+    public String getDocumentsFolderPath() {
+        String filePath = getClass().getResource("html/" + this.setup + "/documents.html").toExternalForm().replaceAll("file:/", "");
+        String[] tmp = filePath.split("/");
+        String folder = "";
+        tmp[tmp.length - 1] = "";
+        for (int i = 0; i < tmp.length; i++) {
+            folder += tmp[i] + "/";
+        }
+        return folder;
     }
-    
-    public void quizFinished(){
-    	this.timerAutoQuiz.stop();
-    	this.t.restart();
+
+    public void quizFinished() {
+        this.timerAutoQuiz.stop();
+        this.t.restart();
     }
-    
-    public void finalQuizFinished(){
-    	this.timerAutoDemog.stop();
-    	this.demogTimer.restart();
+
+    public void finalQuizFinished() {
+        this.timerAutoDemog.stop();
+        this.demogTimer.restart();
     }
 }

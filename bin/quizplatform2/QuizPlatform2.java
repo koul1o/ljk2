@@ -26,18 +26,17 @@ import javafx.stage.WindowEvent;
 public class QuizPlatform2 extends Application {
 
     private static String[] arguments;
-    double percent = 0.0;
+    private double percent = 0.0;
     public Bridge bridge;
     final LongProperty startTime = new SimpleLongProperty();
     final LongProperty endTime = new SimpleLongProperty();
     final LongProperty elapsedTime = new SimpleLongProperty();
-    int cnt2 = 0;
     private float tTime = 60;
     private float fTime = 20;
     private float step = 4;
-    private String root = "html/math"  ;
+    private String root = "html/math";
     private static final String START_URL = "/Instructions.html";
-    ProgressBar progressBar = new ProgressBar();
+    private ProgressBar progressBar = new ProgressBar();
     private String experimentId = "00000";
     private Boolean highlightEnabled = false;
 
@@ -50,13 +49,13 @@ public class QuizPlatform2 extends Application {
         setProperties();
 
         /* Initialize the Bridge */
-        bridge = new Bridge(engine, primaryStage, this, tTime, fTime, step, root, experimentId);
-        
-        if(this.highlightEnabled){
-        	webView.setContextMenuEnabled(false);
-        	createContextMenu(webView, bridge);
+        bridge = new Bridge(engine, primaryStage, this, tTime, fTime, step, root, experimentId, progressBar);
+
+        if (this.highlightEnabled) {
+            webView.setContextMenuEnabled(false);
+            createContextMenu(webView, bridge);
         }
-        
+
         /* Load the first Url */
         engine.load(getClass().getResource("/bin/quizplatform2/" + root + START_URL).toExternalForm());
         /* Enable JS in the WebEngine */
@@ -173,7 +172,7 @@ public class QuizPlatform2 extends Application {
         }
 
     }
-    
+
     private void createContextMenu(WebView webView, Bridge bridge) {
         ContextMenu contextMenu = new ContextMenu();
         MenuItem highlight = new MenuItem("Highlight");
